@@ -303,7 +303,14 @@ class Lists extends BaseWidget
                 // Manipulate a count query for the sub query
                 $countQuery = $relationObj->getRelationExistenceCountQuery($relationObj->getRelated()->newQueryWithoutScopes(), $query);
 
-                $joinSql = DB::raw($this->isColumnRelated($column, true) ? 'group_concat('.$sqlSelect." separator ', ')" : $sqlSelect);
+                $isRelated = $this->isColumnRelated($column, true);
+                if ($isRelated) {
+                    $driver = DB::getDriverName();
+                    $groupFn = $driver === 'pgsql' ? 'string_agg('.$sqlSelect.", ', ')" : 'group_concat('.$sqlSelect." separator ', ')";
+                } else {
+                    $groupFn = $sqlSelect;
+                }
+                $joinSql = DB::raw($groupFn);
 
                 $joinSql = $countQuery->select($joinSql)->toRawSql();
 

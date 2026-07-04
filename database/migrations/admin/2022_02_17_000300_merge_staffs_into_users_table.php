@@ -96,7 +96,11 @@ return new class extends Migration
 
         if (Schema::hasColumn('admin_users', 'staff_id')) {
             Schema::table('admin_users', function(Blueprint $table) {
-                $table->dropIndexIfExists('admin_users_staff_id_unique');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('ALTER TABLE admin_users DROP CONSTRAINT IF EXISTS admin_users_staff_id_unique');
+                } else {
+                    $table->dropIndexIfExists('admin_users_staff_id_unique');
+                }
             });
 
             Schema::table('admin_users', function(Blueprint $table) {

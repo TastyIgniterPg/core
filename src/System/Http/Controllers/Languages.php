@@ -143,7 +143,11 @@ class Languages extends AdminController
     {
         $model = $this->asExtension(FormController::class)->formFindModelObject($recordId);
 
-        $response = resolve(LanguageManager::class)->applyLanguagePack($model->code, (array)$model->version);
+        try {
+            $response = resolve(LanguageManager::class)->applyLanguagePack($model->code, (array)$model->version);
+        } catch (Exception $ex) {
+            throw \Igniter\Flame\Exception\FlashException::error($ex->getMessage());
+        }
 
         return $this->makePartial('updates', [
             'locale' => $model->code,
@@ -173,7 +177,11 @@ class Languages extends AdminController
         $success = true;
         $messages = [];
         $languageManager = resolve(LanguageManager::class);
-        $itemsToUpdate = $languageManager->applyLanguagePack($model->code, (array)$model->version);
+        try {
+            $itemsToUpdate = $languageManager->applyLanguagePack($model->code, (array)$model->version);
+        } catch (Exception $ex) {
+            throw \Igniter\Flame\Exception\FlashException::error($ex->getMessage());
+        }
         foreach ($itemsToUpdate as $item) {
             foreach (array_get($item, 'files', []) as $file) {
                 $messages[] = sprintf(lang('igniter::system.languages.alert_update_file_progress'), $model->code, $item['name'], $file['name']);
