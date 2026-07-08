@@ -29,8 +29,13 @@ trait HasChartDatasets
     {
         $dateColumnName = $config['column'];
 
+        $driver = DB::getDriverName();
+        $dateExpression = $driver === 'pgsql'
+            ? "TO_CHAR(".$dateColumnName.", 'YYYY-MM-DD')"
+            : "DATE_FORMAT(".$dateColumnName.", '%Y-%m-%d')";
+
         $query = $config['model']::query()->select(
-            DB::raw('DATE_FORMAT('.$dateColumnName.', "%Y-%m-%d") as x'),
+            DB::raw($dateExpression.' as x'),
             DB::raw('count(*) as y'),
         )->whereBetween($dateColumnName, [$start, $end])->groupBy('x');
 

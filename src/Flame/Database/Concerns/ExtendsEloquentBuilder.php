@@ -52,6 +52,20 @@ trait ExtendsEloquentBuilder
      */
     public function pluckDates(string $column, $keyFormat = '%Y-%m', $valueFormat = '%M %Y')
     {
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        if ($driver === 'pgsql') {
+            $pgKeyFormat = str_replace(['%Y', '%m', '%d', '%M', '%y'], ['YYYY', 'MM', 'DD', 'FMMonth', 'YY'], $keyFormat);
+            $pgValueFormat = str_replace(['%Y', '%m', '%d', '%M', '%y'], ['YYYY', 'MM', 'DD', 'FMMonth', 'YY'], $valueFormat);
+
+            return $this
+                ->selectRaw(sprintf("TO_CHAR(%s, ?) as dateKey, TO_CHAR(%s, ?) as dateValue", $column, $column), [
+                    $pgKeyFormat, $pgValueFormat,
+                ])
+                ->groupBy(['dateKey', 'dateValue'])
+                ->orderBy($column, 'desc')
+                ->pluck('dateValue', 'dateKey');
+        }
+
         return $this
             ->selectRaw(sprintf('DATE_FORMAT(%s, ?) as dateKey, DATE_FORMAT(%s, ?) as dateValue', $column, $column), [
                 $keyFormat, $valueFormat,
