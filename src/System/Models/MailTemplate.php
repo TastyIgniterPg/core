@@ -150,6 +150,7 @@ class MailTemplate extends Model
             $templateModel->label = $label;
             $templateModel->is_custom = false;
             $templateModel->layout_id = MailLayout::getIdFromCode($layoutCode);
+            $templateModel->fillFromView();
             $templateModel->save();
         }
     }
